@@ -18,14 +18,21 @@ if [ ! -d "users/$receiver" ]; then
     exit 1
 fi
 
+# Acquire lock for receiver's wall to prevent concurrent posts
+./acquire.sh "wall_${receiver}"
+
 # Check if sender is a friend of receiver
 if ! grep "^$sender$" "users/$receiver/friends.txt" > /dev/null 2>&1; then
+    ./release.sh "wall_${receiver}"
     echo "nok: user '$sender' is not a friend of '$receiver'"
     exit 1
 fi
 
 # Post message to receiver's wall
 echo "$sender: $message" >> "users/$receiver/wall.txt"
+
+# Release lock
+./release.sh "wall_${receiver}"
 
 echo "ok: message posted!"
 
